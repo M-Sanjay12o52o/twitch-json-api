@@ -1,113 +1,116 @@
-import Image from "next/image";
+"use client"
+
+import { useEffect, useState } from "react"
+
+interface StatusType {
+  [key: string]: string
+}
 
 export default function Home() {
+  const [userIds, setUserIds] = useState<any>({})
+  const [status, setStatus] = useState<StatusType>({
+    ESL_SC2: "Offline",
+    OgamingSC2: "Offline",
+    cretetion: "Offline",
+    freecodecamp: "Offline",
+    storbeck: "Offline",
+    habathcx: "Offline",
+    RobotCaleb: "Offline",
+    noobs2ninjas: "Offline"
+  })
+
+  console.log("userIds: ", userIds)
+
+  let userArr = ["ESL_SC2", "OgamingSC2", "cretetion", "freecodecamp", "storbeck", "habathcx", "RobotCaleb", "noobs2ninjas"]
+
+  useEffect(() => {
+    const fetchUserIds = async () => {
+      const userInfoPromises = userArr.map(async (user) => {
+        try {
+          const response = await fetch(`/api/getUserId?login=${user}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+
+          return { [user]: data.data.data[0]?.id || 'Not found' };
+        } catch (error) {
+          console.error(`Error fetching Twitch data for ${user}: ${error}`);
+          return { [user]: 'Error' };
+        }
+      })
+
+      const results = await Promise.all(userInfoPromises);
+      const combinedResults = Object.assign({}, ...results);
+      setUserIds(combinedResults);
+    }
+
+    fetchUserIds();
+  }, [])
+
+  useEffect(() => {
+    if (Object.keys(userIds).length > 0) {
+      const fetchStatus = async () => {
+        const statusPromises = Object.entries(userIds).map(async ([user, userId]) => {
+          console.log("userId from fetchStatus: ", userId)
+
+          try {
+            const response = await fetch(`/api/getStatus?user_id=${userId}`);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            console.log("getStatusdata: ", data)
+
+            return { [user]: data.data.data.length > 0 ? 'Online' : 'Offline' }
+          } catch (error) {
+            console.error(`Error fetching Twitch status for ${user}: ${error}`)
+            return { [user]: 'Offline' };
+          }
+        })
+
+        const results = await Promise.all(statusPromises)
+        const combinedResults = Object.assign({}, ...results)
+        setStatus(combinedResults)
+      }
+
+      fetchStatus();
+    }
+  }, [userIds])
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="bg-white bg-opacity-10 rounded-lg shadow-lg p-6 mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white flex items-center">
+            <img
+              src="/twitch.svg"
+              alt="Twitch Logo"
+              className="mr-4 w-12 h-12 text-purple-400"
             />
-          </a>
-        </div>
+            TWITCH STREAMERS
+          </h1>
+        </header>
+        <main className="bg-white bg-opacity-5 rounded-lg shadow-lg p-6">
+          <div className="space-y-4">
+            {userArr.map((user, index) => (
+              <div
+                key={index}
+                className="bg-white bg-opacity-10 rounded-lg p-4 hover:bg-opacity-20 transition-all duration-300 flex justify-between items-center"
+              >
+                <p className="text-white text-lg font-semibold">
+                  {user}
+                </p>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${status[user] === 'Online' ? 'bg-green-400' : 'bg-red-400'
+                  }`}>
+                  {status[user]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
