@@ -7,6 +7,7 @@ interface StatusType {
 }
 
 export default function Home() {
+  const [filter, setFilter] = useState("all")
   const [userIds, setUserIds] = useState<any>({})
   const [status, setStatus] = useState<StatusType>({
     ESL_SC2: "Offline",
@@ -22,6 +23,12 @@ export default function Home() {
   console.log("userIds: ", userIds)
 
   let userArr = ["ESL_SC2", "OgamingSC2", "cretetion", "freecodecamp", "storbeck", "habathcx", "RobotCaleb", "noobs2ninjas"]
+
+  const filteredUsers = userArr.filter(user => {
+    if (filter === "all") return true;
+    if (filter === "online") return status[user] === "Online";
+    if (filter === "offline") return status[user] === "Offline";
+  })
 
   useEffect(() => {
     const fetchUserIds = async () => {
@@ -92,9 +99,34 @@ export default function Home() {
             TWITCH STREAMERS
           </h1>
         </header>
+
+        {/* filter options */}
+        <div className="bg-white bg-opacity-10 rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-full ${filter === 'all' ? 'bg-purple-500 text-white' : 'bg-white bg-opacity-20 text-white'}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter('online')}
+              className={`px-4 py-2 rounded-full ${filter === 'online' ? 'bg-green-500 text-white' : 'bg-white bg-opacity-20 text-white'}`}
+            >
+              Online
+            </button>
+            <button
+              onClick={() => setFilter('offline')}
+              className={`px-4 py-2 rounded-full ${filter === 'offline' ? 'bg-red-500 text-white' : 'bg-white bg-opacity-20 text-white'}`}
+            >
+              Offline
+            </button>
+          </div>
+        </div>
+
         <main className="bg-white bg-opacity-5 rounded-lg shadow-lg p-6">
           <div className="space-y-4">
-            {userArr.map((user, index) => (
+            {filteredUsers.map((user, index) => (
               <div
                 key={index}
                 className="bg-white bg-opacity-10 rounded-lg p-4 hover:bg-opacity-20 transition-all duration-300 flex justify-between items-center"
@@ -102,7 +134,7 @@ export default function Home() {
                 <p className="text-white text-lg font-semibold">
                   {user}
                 </p>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${status[user] === 'Online' ? 'bg-green-400' : 'bg-red-400'
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${status[user] === 'Online' ? 'bg-green-500' : 'bg-red-500'
                   }`}>
                   {status[user]}
                 </span>
