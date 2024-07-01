@@ -9,8 +9,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const user_id = searchParams.get('user_id');
 
-    console.log("user_id: ", user_id);
-
     if (!user_id) {
         return NextResponse.json({ error: 'user_id Parameter is required' }, { status: 400 });
     }
@@ -30,7 +28,7 @@ export async function GET(request: Request) {
 
         const data = await res.json();
 
-        console.log("data: ", data);
+        console.log("data getStatus: ", data);
 
         return NextResponse.json({ data });
     } catch (error) {
